@@ -1,0 +1,1771 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "df7Z_u20uZnc"
+   },
+   "source": [
+    "# <strong><font color=\"77A316\">Data Science: transformando variáveis para uma Regressão Linear</font></strong>\n",
+    "\n",
+    "\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "8mrooZBe3CYS"
+   },
+   "source": [
+    "# **Aula 1 - Análises preliminares**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "KeTZ44dj25vH"
+   },
+   "source": [
+    "## **Precificação de imóveis**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "D4EL92EPu5M5"
+   },
+   "source": [
+    "\n",
+    "**Problema de negócio:**\n",
+    "\n",
+    "Você, como **cientista de dados** de uma imobiliária, precisa criar um modelo que consiga estimar os preços de diferentes casas para que o time de vendedores e vendedoras possam negociá-las com potenciais clientes.\n",
+    "\n",
+    "Para isso, vamos observar as principais características de casas que já foram vendidas de acordo com a base de dados que recebemos, analisar estes dados e construir um modelo de aprendizado de máquina (ML), averiguando sua eficácia.\n",
+    "\n",
+    "<img src=\"https://raw.githubusercontent.com/afonsosr2/data-science-regressao-linear/main/imagens/casas.webp\" alt=\"Desenho de um conjunto de casas de estilo moderno. Temos casas de 1 a 2 andares\" width=720>\n",
+    "\n",
+    "**Objetivo**\n",
+    "\n",
+    "Estimar preços dos imóveis de acordo com diversas características das propriedades, como área e localização. Para este propósito, vamos:\n",
+    "\n",
+    "* Identificar quais fatores contribuem para a precificação dos imóveis;\n",
+    "* Averiguar a influência das características no preço do imóvel;\n",
+    "* Diferenciar quando precisamos transformar ou não as variáveis para uma melhor resposta do modelo;\n",
+    "* Verificar a relação entre as variáveis explicativas e a variável resposta;\n",
+    "* Criar um modelo de regressão linear de múltiplas variáveis;\n",
+    "* Fazer previsões para uma ou mais casas.\n",
+    "\n",
+    "**Base de dados:**\n",
+    "\n",
+    "Vamos utilizar a base `precos_casa.csv` adaptada de uma base bem conhecida no **Kaggle** chamada [House Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data?select=train.csv).\n",
+    "\n",
+    "Esses dados serão lidos a partir do repositório compartilhado pelo GitHub.\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "Q8W9wBTP4HPn"
+   },
+   "source": [
+    "## **1.2 - Conhecendo os dados**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "nl37-rv_C9Vk"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando bibliotecas básicas\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import seaborn as sns\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "# Configurando estilo dos gráficos\n",
+    "sns.set_style('darkgrid')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "v0okHkGnHaRd"
+   },
+   "outputs": [],
+   "source": [
+    "# Carregando os dados do arquivo CSV\n",
+    "# Certifique-se que o arquivo 'precos_casas.csv' está no mesmo diretório\n",
+    "# ou forneça o caminho completo.\n",
+    "df = pd.read_csv('precos_casas.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "9HZc25OLHkzI"
+   },
+   "outputs": [],
+   "source": [
+    "# Visualizando as primeiras linhas do DataFrame\n",
+    "print(\"Primeiras linhas do DataFrame:\")\n",
+    "print(df.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "LgM396yZHmYI"
+   },
+   "outputs": [],
+   "source": [
+    "# Verificando a quantidade de dados (linhas, colunas)\n",
+    "print(f\"\\nDimensões do DataFrame (linhas, colunas): {df.shape}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "8vyPVDDn-VrI"
+   },
+   "outputs": [],
+   "source": [
+    "# Como estão os meus dados? Temos dados nulos? Quais são seus tipos?\n",
+    "print(\"\\nInformações sobre o DataFrame (tipos de dados, valores não nulos):\")\n",
+    "df.info()\n",
+    "\n",
+    "# Verificando explicitamente valores nulos por coluna\n",
+    "print(\"\\nContagem de valores nulos por coluna:\")\n",
+    "print(df.isnull().sum())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "R6vVuyht4WfE"
+   },
+   "source": [
+    "## **1.3 - Entendendo a relação dos dados**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "5FO1hOorBtuv"
+   },
+   "source": [
+    "Para entender a relação dos dados entre o valor de venda dos imóveis do dataset e suas características vamos utilizar a **Correlação**.\n",
+    "\n",
+    "Correlação é uma medida estatística que varia numa escala de -1 a 1, indicando a relação e a dependência entre duas variáveis. Existem três tipos principais de correlação:\n",
+    "\n",
+    "1.   **Correlação Positiva:** quando uma variável aumenta, a outra tende a aumentar.\n",
+    "2.   **Correlação Nula:** não há relação linear entre as variáveis.\n",
+    "3.   **Correlação Negativa:** quando uma variável aumenta, a outra tende a diminuir.\n",
+    "\n",
+    "Essa medida não só define a direção, como também, a intensidade da relação.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "igFFQMI9EUje"
+   },
+   "outputs": [],
+   "source": [
+    "# Correlação entre todas as variáveis numéricas\n",
+    "print(\"\\nMatriz de correlação completa:\")\n",
+    "# Excluindo colunas não numéricas se houver (neste caso, todas são numéricas)\n",
+    "print(df.corr())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "5uMVufkWEgXT"
+   },
+   "outputs": [],
+   "source": [
+    "# Correlação das variáveis com o preço de venda ('valor'), ordenado\n",
+    "print(\"\\nCorrelação das variáveis com 'valor':\")\n",
+    "print(df.corr()['valor'].sort_values(ascending=False))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "ZmdFcMZi-pn2"
+   },
+   "source": [
+    "## **1.4 - Visualizando uma Regressão Linear com uma variável independente**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "WubZjm6FFhjh"
+   },
+   "source": [
+    "Já compreendemos um pouco a relação entre as variáveis e o valor de venda das casas. Mas que tal observarmos isso visualmente, pegando apenas uma das variáves de nossa base?\n",
+    "\n",
+    "> Não se preocupe que aqui vamos apenas observar o comportamento da variável `valor`em relação a `area_primeiro_andar` rodando um modelo de regressão linear dentro da função `reg_plot()` da biblioteca `seaborn`. Mais a frente implementaremos o nosso próprio modelo!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "IQPtBK-MF1g7"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando as bibliotecas (já importadas, mas bom garantir)\n",
+    "import seaborn as sns\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "# Configurando estilo dos gráficos (já configurado, mas bom garantir)\n",
+    "sns.set_style('darkgrid')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "ZHCuenkXF2Ec"
+   },
+   "outputs": [],
+   "source": [
+    "# Plotando a relação entre 'area_primeiro_andar' e 'valor' com uma reta de regressão\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "ax = sns.regplot(data=df, x='area_primeiro_andar', y='valor', line_kws={'color': 'red'})\n",
+    "ax.set_title('Valor do Imóvel vs Área do Primeiro Andar', fontsize=16)\n",
+    "ax.set_xlabel('Área do Primeiro Andar (m²)', fontsize=12)\n",
+    "ax.set_ylabel('Valor do Imóvel (R$)', fontsize=12)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "gVto9V_AI3Q3"
+   },
+   "source": [
+    "Vamos ampliar nossas análises e verificar o comportamento da variável dependente e das variáveis explicativas?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "Tf8Kcb-a-r6W"
+   },
+   "source": [
+    "# **Aula 2 - Análises gráficas**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "N3qmb0aV-tWk"
+   },
+   "source": [
+    "## **2.1 - Visualizando o comportamento da variável dependente**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "7hoxnsbZKGMs"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/boxplot_y_slide.png?raw=true\" alt=\"Boxplot esperado para a variável dependente\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "MuN5I-vvrxrL"
+   },
+   "source": [
+    "O **boxplot** é uma representação visual que mostra a distribuição de dados quantitativos, facilitando comparações entre variáveis ou categorias.\n",
+    "\n",
+    "Os elementos principais de um boxplot são:\n",
+    "\n",
+    "* **Caixa:** Representa o intervalo\n",
+    "interquartil (IIQ), que vai do primeiro quartil (Q1 - 25% dos dados) ao terceiro quartil (Q3 - 75% dos dados).\n",
+    "\n",
+    "* **Linha mediana:** Onde está posicionado a mediana (Q2), valor que separa 50% dos dados.\n",
+    "\n",
+    "* **Whiskers (\"bigodes\"):** Extensões que mostram a variabilidade fora do intervalo interquartil, geralmente até 1,5 vezes o IIQ a partir dos quartis.\n",
+    "\n",
+    "* **Outliers:** Pontos individuais que estão fora do alcance dos *whiskers*, indicados separadamente.\n",
+    "\n",
+    "Essa visualização ajuda a identificar a centralidade, dispersão e possíveis outliers em um conjunto de dados."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "neEExYz7LdsM"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando um boxplot para a variável 'valor'\n",
+    "plt.figure(figsize=(8, 6))\n",
+    "ax = sns.boxplot(data=df, y='valor')\n",
+    "ax.set_title('Boxplot da Variável Dependente (Valor do Imóvel)', fontsize=16)\n",
+    "ax.set_ylabel('Valor do Imóvel (R$)', fontsize=12)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "CNjm0cN55oD3"
+   },
+   "source": [
+    " Esse nosso boxplot está muito para à esquerda. Vamos investigar esse comportamento utilizando outro visual de distribuição dos dados?\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "UlAdlNN8-tWk"
+   },
+   "source": [
+    "## **2.2 - Investigando a distribuição de frequências da variável dependente**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "bdLu-_nmLePr"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando um histograma com curva de densidade para 'valor'\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "ax = sns.histplot(data=df, x='valor', kde=True)\n",
+    "ax.set_title('Distribuição de Frequência do Valor do Imóvel', fontsize=16)\n",
+    "ax.set_xlabel('Valor do Imóvel (R$)', fontsize=12)\n",
+    "ax.set_ylabel('Frequência', fontsize=12)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "qGGzWWsxKejP"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/freq_slide.png?raw=true\" alt=\"Distribuição de frequências para distribuições normais assimétricas à direita, simétrica e assimétrica à esquerda\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "gvM8NI1DsBz6"
+   },
+   "source": [
+    "Existem três tipos principais de distribuição de frequências:\n",
+    "\n",
+    "1. **Distribuição Assimétrica à Direita (Positivamente Assimétrica)**: a cauda longa está à direita da mediana. Neste caso, a média dos dados é maior que a mediana. **Exemplo:** salários em uma empresa, onde poucas pessoas (com cargos mais gerenciais) têm salários mais altos.\n",
+    "\n",
+    "2. **Distribuição Simétrica**: a distribuição é espelhada em torno das medidas de tendência central. A característica principal é que a média, a mediana e a moda são iguais ou muito próximas.\n",
+    "\n",
+    "3. **Distribuição Assimétrica à Esquerda (Negativamente Assimétrica)**: a cauda longa está à esquerda da mediana. Neste caso, a média dos dados é menor que a mediana. **Exemplo:** notas de exames onde a maioria dos alunos pontua alto, mas alguns pontuam muito baixo."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "Dsz9YO1N6BCW"
+   },
+   "source": [
+    "Observando graficamente o comportamento da variável dependente (Y → Valor do imóvel) descobrimos que estamos tratando de uma **Distribuição Assimétrica à Direita** e sabemos que vamos precisar realizar uma transformação desses dados antes de aplicarmos o modelo.\n",
+    "\n",
+    "Que tal agora observarmos também as variáveis independentes (explicativas) e como elas estão distribuídas em relação ao valor?\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "xtXwDugY-uwV"
+   },
+   "source": [
+    "## **2.3 - Analisando as variáveis independentes**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "c-V7_-xA9oLR"
+   },
+   "source": [
+    "Vamos agora plotar o relacionamento das variáveis do dataset levando em conta o valor do imóvel utilizando o `pairplot()`"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "7puCcSAsLfPH"
+   },
+   "outputs": [],
+   "source": [
+    "# Colunas dos dados\n",
+    "print(\"\\nColunas do DataFrame:\")\n",
+    "print(df.columns)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "HWILeHQhLfMG"
+   },
+   "outputs": [],
+   "source": [
+    "# Pairplot sem reta de regressão para visualizar relações e distribuições\n",
+    "print(\"\\nGerando Pairplot (sem retas de regressão)...\")\n",
+    "sns.pairplot(df, corner=True)\n",
+    "plt.suptitle('Pairplot das Variáveis (sem regressão)', y=1.02, fontsize=16)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "56gt3t2q-KUN"
+   },
+   "source": [
+    "Para o pairplot com a reta de regressão vamos retirar a coluna da geração do visual `existe_segundo_andar`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "GjDIRrZFLfJO"
+   },
+   "outputs": [],
+   "source": [
+    "# Pairplot com reta de regressão, excluindo a variável binária 'existe_segundo_andar' da regressão\n",
+    "print(\"\\nGerando Pairplot (com retas de regressão)...\")\n",
+    "# Seleciona colunas para incluir na regressão do pairplot\n",
+    "cols_for_reg_pairplot = ['valor', 'area_primeiro_andar', 'area_quintal', 'dist_metro', 'dist_parque']\n",
+    "sns.pairplot(df, vars=cols_for_reg_pairplot, kind='reg', plot_kws={'line_kws':{'color':'red'}}, corner=True)\n",
+    "plt.suptitle('Pairplot das Variáveis (com regressão)', y=1.02, fontsize=16)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "AW5lpZNd-tDT"
+   },
+   "source": [
+    "Já vimos coisas interessantes aqui! Vamos partir para a transformação das variáveis? E qual tipo de transformação vamos fazer?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "_dk1bDmJ-wTp"
+   },
+   "source": [
+    "# **Aula 3 - Transformação de variáveis**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "kWfWLdPL-uwV"
+   },
+   "source": [
+    "## **Curva log**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "ggty1KlMLBt1"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/curva_log_slide.png?raw=true\" alt=\"Gráfico representando a curva de um logarítmo neperiano (ln(x))\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "RWEQV-w1J-9d"
+   },
+   "source": [
+    "A **curva log** é uma representação gráfica de uma função logarítmica, especificamente usando o **logaritmo natural** ($ln$), que tem a base $e$ (aproximadamente igual a 2,718). Ela serve para transformar dados exponenciais em uma escala linear.\n",
+    "\n",
+    "A função logarítmica natural é definida como $y = ln(x)$, onde $x > 0$. Essa curva é largamente utilizada para ajustar dados que crescem rapidamente, facilitando a visualização e a interpretação.\n",
+    "\n",
+    "Sua característica principal é o crescimento da curva, mas a uma taxa decrescente. Ou seja, temos um achatamento da curva conforme o valor de $x$ aumenta. Isso faz com que grandes valores possam ser descritos numa mesma visualização que pequenos valores (i.e. 1, 10, 100 e 1000).\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "prMytsmQJO7S"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando numpy (já importado, mas bom garantir)\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "To3W5B7jJO4S"
+   },
+   "outputs": [],
+   "source": [
+    "# Tentando calcular log de 0 (gera aviso e -inf)\n",
+    "# O código original já faz isso, apenas replicando para completude\n",
+    "try:\n",
+    "    print(f\"np.log(0) = {np.log(0)}\")\n",
+    "except RuntimeWarning as e:\n",
+    "    print(f\"Aviso ao calcular np.log(0): {e}\")\n",
+    "    print(f\"Resultado de np.log(0): {np.log(0)}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "GfGsvBuNJO1I"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando log de 1\n",
+    "# O código original já faz isso, apenas replicando para completude\n",
+    "print(f\"np.log(1) = {np.log(1)}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "qmI2FZfXFGla"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando log de 1.000.000\n",
+    "# O código original já faz isso, apenas replicando para completude\n",
+    "print(f\"np.log(1_000_000) = {np.log(1_000_000)}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "ZnT1tqYBJWcx"
+   },
+   "source": [
+    "É possível observar que queremos evitar de calcular o log de 0, portanto, vamos precisar de atenção ao analisar os dados antes de efetuar a transformação logarítmica. Vamos transformar nossos dados e observar o que seria um modelo log-log?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "ac5Cf_ni-zC0"
+   },
+   "source": [
+    "## **3.1 - Transformando os dados**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "cvF2DDs0tNLB"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/modelo_log-log_slides.png?raw=true\" alt=\"Apresentando a transformação logarítmica de um modelo log-linear\">"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "PGkzTEAAKkCv"
+   },
+   "source": [
+    "### **Aplicando a transformação logarítmica**\n",
+    "\n",
+    "* [np.log()](https://numpy.org/doc/stable/reference/generated/numpy.log.html)\n",
+    "* [np.log1p()](https://numpy.org/doc/stable/reference/generated/numpy.log1p.html)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "XRGIzzNzQ1WP"
+   },
+   "outputs": [],
+   "source": [
+    "# Verificando se há 0 nas variáveis explicativas numéricas e na variável resposta\n",
+    "print(\"\\nVerificando valores <= 0 nas colunas relevantes:\")\n",
+    "cols_to_check = ['valor', 'area_primeiro_andar', 'area_quintal', 'dist_metro', 'dist_parque']\n",
+    "print((df[cols_to_check] <= 0).sum())\n",
+    "# Nota: 'area_quintal' tem zeros. Usaremos np.log1p para ela.\n",
+    "# Para as outras (assumindo que são sempre > 0 com base na verificação), usaremos np.log."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "IFK9HGZuQ1Rl"
+   },
+   "outputs": [],
+   "source": [
+    "# Transformando as variáveis explicativas e resposta utilizando o logaritmo\n",
+    "# Usando np.log para variáveis estritamente positivas\n",
+    "df['log_valor'] = np.log(df['valor'])\n",
+    "df['log_area_primeiro_andar'] = np.log(df['area_primeiro_andar'])\n",
+    "df['log_dist_metro'] = np.log(df['dist_metro'])\n",
+    "df['log_dist_parque'] = np.log(df['dist_parque'])\n",
+    "\n",
+    "# Usando np.log1p para 'area_quintal' pois pode conter 0\n",
+    "df['log_area_quintal'] = np.log1p(df['area_quintal'])\n",
+    "\n",
+    "# A variável 'existe_segundo_andar' é binária e não precisa de transformação logarítmica"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "8-eH3TkqQ1Mb"
+   },
+   "outputs": [],
+   "source": [
+    "# Lendo os dados transformados (primeiras linhas)\n",
+    "print(\"\\nDataFrame com colunas transformadas (log):\")\n",
+    "print(df.head())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "sYZIsfCgO01L"
+   },
+   "source": [
+    "Agora que fizemos a transformação dos dados, vamos verificar como ficaram as nossas variáveis graficamente?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "X6t6q2ldRfCY"
+   },
+   "outputs": [],
+   "source": [
+    "# Plotando a distribuição da variável dependente transformada (log_valor)\n",
+    "ax = sns.histplot(data=df, x='log_valor', kde=True)\n",
+    "ax.figure.set_size_inches(12, 6)\n",
+    "ax.set_title('Distribuição de frequência (Log do Valor)', fontsize=20)\n",
+    "ax.set_xlabel('Log do Valor dos imóveis', fontsize=16)\n",
+    "ax.set_ylabel('Frequência', fontsize=12)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "XBfpyrvxP6Gz"
+   },
+   "source": [
+    "Vamos agora analisar como ficaram também as distribuições de nossas variáveis explicativas separadamente de acordo com o valor do imóvel?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "MvrGvMOF-zC0"
+   },
+   "source": [
+    "## **3.2 - Verificando a relação linear**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "wZJiRsRXQMD1"
+   },
+   "source": [
+    "Vamos utilizar basicamente o mesmo código, só lembrando de colocar o `log_` em todas que sofreram uma transformação logarítmica"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "AYwLP-kGRe62"
+   },
+   "outputs": [],
+   "source": [
+    "# Gerando pairplot com as variáveis transformadas (e a binária original)\n",
+    "print(\"\\nGerando Pairplot (com variáveis transformadas e retas de regressão)...\")\n",
+    "log_cols_for_pairplot = ['log_valor', 'log_area_primeiro_andar', 'log_area_quintal', 'log_dist_metro', 'log_dist_parque']\n",
+    "# Incluindo a variável binária na visualização geral\n",
+    "all_log_cols = ['log_valor', 'log_area_primeiro_andar', 'existe_segundo_andar', 'log_area_quintal', 'log_dist_metro', 'log_dist_parque']\n",
+    "\n",
+    "# Opção 1: Pairplot simples de todas as variáveis relevantes\n",
+    "sns.pairplot(df[all_log_cols], corner=True)\n",
+    "plt.suptitle('Pairplot das Variáveis Transformadas e Binária', y=1.02, fontsize=16)\n",
+    "plt.show()\n",
+    "\n",
+    "# Opção 2: Focar nas relações com log_valor usando regplot individualmente\n",
+    "print(\"\\nVisualizando relações individuais com log_valor (transformado):\")\n",
+    "feature_cols = ['log_area_primeiro_andar', 'existe_segundo_andar', 'log_area_quintal', 'log_dist_metro', 'log_dist_parque']\n",
+    "for col in feature_cols:\n",
+    "    plt.figure(figsize=(8, 5))\n",
+    "    if df[col].nunique() > 2: # Contínua (transformada)\n",
+    "         sns.regplot(data=df, x=col, y='log_valor', line_kws={'color': 'red'})\n",
+    "         plt.title(f'log_valor vs {col}', fontsize=14)\n",
+    "    else: # Binária\n",
+    "         sns.boxplot(data=df, x=col, y='log_valor')\n",
+    "         # Ou sns.stripplot para ver pontos individuais\n",
+    "         # sns.stripplot(data=df, x=col, y='log_valor', jitter=True, alpha=0.5)\n",
+    "         plt.title(f'log_valor vs {col} (Binária)', fontsize=14)\n",
+    "    plt.xlabel(col, fontsize=12)\n",
+    "    plt.ylabel('log_valor', fontsize=12)\n",
+    "    plt.tight_layout()\n",
+    "    plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "EmloQ9pI-11l"
+   },
+   "source": [
+    "# **Aula 4 - Regressão linear múltipla**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "wGJMJW-y-11l"
+   },
+   "source": [
+    "## **4.1 - Preparando os dados**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "HmA6UHwMUCQh"
+   },
+   "source": [
+    "O primeiro passo para criação do nosso modelo de Regressão Linear é a separação dos dados entre datasets de treino e teste."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "siryUkxKRQ4v"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando o método de separação dos dados de treino e teste\n",
+    "from sklearn.model_selection import train_test_split"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "fwrD_PvKRQ1y"
+   },
+   "outputs": [],
+   "source": [
+    "# Definindo X (variáveis independentes) e y (variável dependente)\n",
+    "# Usar as variáveis transformadas (log_) e a binária original\n",
+    "y = df['log_valor']\n",
+    "X = df[['log_area_primeiro_andar', 'existe_segundo_andar', 'log_area_quintal', 'log_dist_metro', 'log_dist_parque']]\n",
+    "\n",
+    "print(\"\\nVariável Dependente (y) - Primeiras linhas:\")\n",
+    "print(y.head())\n",
+    "print(\"\\nVariáveis Independentes (X) - Primeiras linhas:\")\n",
+    "print(X.head())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "yx5ECV5PUd_B"
+   },
+   "source": [
+    "#### **Vamos compreender o método** `train_test_split`?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "uGdaLY2GVa7L"
+   },
+   "outputs": [],
+   "source": [
+    "# Mostrando a ajuda da função train_test_split (descomente para executar)\n",
+    "# from sklearn.model_selection import train_test_split\n",
+    "# help(train_test_split)\n",
+    "print(\"\\nAjuda da função train_test_split (comentada no código).\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "if0hCZjPSSCa"
+   },
+   "outputs": [],
+   "source": [
+    "# Dividindo os dados em conjuntos de treino e teste (80% treino, 20% teste)\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n",
+    "# random_state garante a reprodutibilidade da divisão\n",
+    "print(f\"\\nDados divididos: {X_train.shape[0]} amostras de treino, {X_test.shape[0]} amostras de teste.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "_gItQ5ZRSmAy"
+   },
+   "outputs": [],
+   "source": [
+    "# Verificando o tamanho do conjunto de treino para X\n",
+    "print(f\"\\nDimensões de X_train: {X_train.shape}\")\n",
+    "print(\"Primeiras linhas de X_train:\")\n",
+    "print(X_train.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "q5c5mhyWSoeX"
+   },
+   "outputs": [],
+   "source": [
+    "# Verificando o tamanho do conjunto de teste para X\n",
+    "print(f\"\\nDimensões de X_test: {X_test.shape}\")\n",
+    "print(\"Primeiras linhas de X_test:\")\n",
+    "print(X_test.head())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "RY2orM9K-11l"
+   },
+   "source": [
+    "## **4.2 - Avaliando as estatísticas do modelo com Statsmodels**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "IOEUvkxPVym1"
+   },
+   "source": [
+    "Agora vamos estimar nosso modelo inicialmente com Statsmodels verificando as estatísticas do modelo para o caso de todas as variáveis adicionadas."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "RJvNYrGnRRbx"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando a biblioteca Statsmodels\n",
+    "import statsmodels.api as sm"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "Qdeemf0ORRY4"
+   },
+   "outputs": [],
+   "source": [
+    "# Adicionando uma constante (coluna de 1s) ao conjunto de treino X\n",
+    "# Necessário para o Statsmodels calcular o intercepto (termo beta_0)\n",
+    "X_train_com_constante = sm.add_constant(X_train)\n",
+    "\n",
+    "print(\"\\nX_train com constante (primeiras linhas):\")\n",
+    "print(X_train_com_constante.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "VUXYuu8sTepF"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando e treinando o modelo OLS (Ordinary Least Squares)\n",
+    "# Usando y_train e X_train_com_constante\n",
+    "modelo_statsmodels = sm.OLS(y_train, X_train_com_constante, hasconst=True).fit()\n",
+    "print(\"\\nModelo OLS treinado com Statsmodels.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "N96qnExXRRV-"
+   },
+   "outputs": [],
+   "source": [
+    "# Exibindo o sumário estatístico do modelo\n",
+    "print(\"\\nSumário do Modelo OLS (Statsmodels):\")\n",
+    "print(modelo_statsmodels.summary())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "zL6swmlI-11l"
+   },
+   "source": [
+    "## **4.3 - Treinando o modelo**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "Qcv4CUzqRVOT"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando a classe de Regressão Linear do Scikit-learn\n",
+    "from sklearn.linear_model import LinearRegression\n",
+    "# Importando a métrica R² (coeficiente de determinação)\n",
+    "from sklearn.metrics import r2_score"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "sEzJeitYRVLo"
+   },
+   "outputs": [],
+   "source": [
+    "# Atualizando as variáveis de entrada do modelo (se necessário, baseado no Statsmodels)\n",
+    "# Como todas as variáveis foram significativas (P>|t| baixo) no Statsmodels,\n",
+    "# usamos o X_train e X_test originais (sem a constante adicionada manualmente).\n",
+    "# Scikit-learn adiciona o intercepto por padrão.\n",
+    "X_train_novo = X_train\n",
+    "X_test_novo = X_test\n",
+    "print(\"\\nVariáveis de entrada para Scikit-learn definidas (X_train_novo, X_test_novo).\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "ge2asuQwWz_u"
+   },
+   "outputs": [],
+   "source": [
+    "# Verificando o X_train_novo (as features finais para o modelo sklearn)\n",
+    "print(\"\\nFeatures finais para o modelo Scikit-learn (X_train_novo) - Primeiras linhas:\")\n",
+    "print(X_train_novo.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "Xzn5w90AW8Rg"
+   },
+   "outputs": [],
+   "source": [
+    "# Instanciando o modelo de Regressão Linear do Scikit-learn\n",
+    "# O parâmetro fit_intercept=True é o padrão, então o intercepto será calculado.\n",
+    "modelo_sklearn = LinearRegression()\n",
+    "print(\"\\nModelo LinearRegression instanciado.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "vDLO0YB0XLKm"
+   },
+   "outputs": [],
+   "source": [
+    "# Treinando o modelo com os dados de treino (X_train_novo, y_train)\n",
+    "modelo_sklearn.fit(X_train_novo, y_train)\n",
+    "print(\"\\nModelo Scikit-learn treinado com os dados de treino.\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "P54tJv6wXohw"
+   },
+   "source": [
+    "### **Obtendo o coeficiente de determinação (R²) do modelo estimado com os dados de treino**\n",
+    "\n",
+    "O coeficiente de determinação (R²) é uma medida resumida, variando de 0 a 1, que diz quanto a linha de regressão ajusta-se aos dados.\n",
+    "\n",
+    "Por exemplo, um R² = 0.8 representa que 80% da variação da variável dependente é explicada pelas variáveis independentes escolhidas no modelo."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "jma6WMJuY3Ca"
+   },
+   "source": [
+    "#### **R² dos dados de treino**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "fiRe5bziY2W1"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando o R² (coeficiente de determinação) nos dados de TREINO\n",
+    "r2_treino = modelo_sklearn.score(X_train_novo, y_train)\n",
+    "print(f\"\\nCoeficiente de Determinação (R²) - Dados de Treino: {r2_treino:.4f}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "fJFoz798ZTpD"
+   },
+   "source": [
+    "#### **Gerando previsões para os dados de teste do modelo**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "xAfjEDXqXj9O"
+   },
+   "outputs": [],
+   "source": [
+    "# Gerando previsões para os dados de TESTE (X_test_novo)\n",
+    "y_pred_teste = modelo_sklearn.predict(X_test_novo)\n",
+    "print(f\"\\nPrevisões geradas para as {len(y_pred_teste)} amostras de teste.\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "GFg6kHpsZN3Y"
+   },
+   "source": [
+    "#### **R² dos dados de previsão**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "Gh3Gciz9Xj5P"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando o R² (coeficiente de determinação) nos dados de TESTE\n",
+    "# Compara as previsões (y_pred_teste) com os valores reais (y_test)\n",
+    "r2_teste = r2_score(y_test, y_pred_teste)\n",
+    "print(f\"Coeficiente de Determinação (R²) - Dados de Teste: {r2_teste:.4f}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "GU_gAruS-3-J"
+   },
+   "source": [
+    "## **4.4 - Precificando uma casa**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "WV5OknUHp_6Y"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/quanto_custa_slide.png?raw=true\" alt=\"Imagem de uma casa e suas características para precificação\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "oYGJsp84RWO6"
+   },
+   "outputs": [],
+   "source": [
+    "# Quais são as features do nosso modelo? (A ordem importa para a previsão)\n",
+    "print(\"\\nFeatures usadas no modelo final (ordem):\")\n",
+    "print(X_train_novo.columns.tolist())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "yZGLJLsRRWMA"
+   },
+   "outputs": [],
+   "source": [
+    "# Nova casa - definindo as características\n",
+    "# Baseado na imagem: Area 1º: 100m², 2º Andar: Sim, Quintal: 30m², Metro: 1.5km, Parque: 2.0km\n",
+    "area_primeiro_andar_nc = 100\n",
+    "existe_segundo_andar_nc = 1 # Sim\n",
+    "area_quintal_nc = 30\n",
+    "dist_metro_nc = 1.5 # km\n",
+    "dist_parque_nc = 2.0 # km\n",
+    "\n",
+    "# Aplicando as MESMAS transformações logarítmicas usadas no treino\n",
+    "log_area_primeiro_andar_nc = np.log(area_primeiro_andar_nc)\n",
+    "log_area_quintal_nc = np.log1p(area_quintal_nc) # Usar log1p pois foi usado no treino para esta feature\n",
+    "log_dist_metro_nc = np.log(dist_metro_nc)\n",
+    "log_dist_parque_nc = np.log(dist_parque_nc)\n",
+    "\n",
+    "# Criando a entrada para o modelo como um array 2D (mesmo que seja uma única amostra)\n",
+    "# A ordem DEVE ser a mesma de X_train_novo.columns\n",
+    "casa = [[\n",
+    "    log_area_primeiro_andar_nc,\n",
+    "    existe_segundo_andar_nc,\n",
+    "    log_area_quintal_nc,\n",
+    "    log_dist_metro_nc,\n",
+    "    log_dist_parque_nc\n",
+    "]]\n",
+    "\n",
+    "print(\"\\nCaracterísticas da nova casa (após transformação log):\")\n",
+    "print(casa)\n",
+    "# Opcional: Criar um DataFrame para melhor visualização\n",
+    "casa_df = pd.DataFrame(casa, columns=X_train_novo.columns)\n",
+    "print(\"\\nCaracterísticas da nova casa (DataFrame):\")\n",
+    "print(casa_df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "nh-xeUlJbYXs"
+   },
+   "outputs": [],
+   "source": [
+    "# Qual o preço dessa casa? (Prevendo o log do preço)\n",
+    "log_preco_previsto = modelo_sklearn.predict(casa) # casa já está no formato correto (array 2D)\n",
+    "print(f\"\\nLog do preço previsto para a nova casa: {log_preco_previsto[0]:.4f}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "dA84POuhasQt"
+   },
+   "outputs": [],
+   "source": [
+    "# Convertendo o log do preço para o valor real (usando exponencial)\n",
+    "preco_previsto = np.exp(log_preco_previsto[0])\n",
+    "# Formatando para moeda brasileira\n",
+    "print(f\"Preço estimado da nova casa: R$ {preco_previsto:,.2f}\".replace(',', 'v').replace('.', ',').replace('v', '.'))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "LL08hykvbsaF"
+   },
+   "source": [
+    "Prontinho, conseguimos finalmente precificar a nossa 1ª casa com modelo que criamos. Mas como a área, por exemplo do 1º andar influencia em nosso modelo? E o fato de ter ou não 2º andar?\n",
+    "\n",
+    "Vamos entender os coeficientes e consequentemente a contribuição da cada variável no preço?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "2fdy7ZMN-7Xh"
+   },
+   "source": [
+    "# **Aula 5 - Entendendo os resultados**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "Jum0As0K-7Xh"
+   },
+   "source": [
+    "## **5.1 - Obtendo os coeficientes da regressão linear**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "usFKN4tfqOq4"
+   },
+   "source": [
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/coef_slide.png?raw=true\" alt=\"Imagem com os coeficientes de regressão\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "p0UFAxQRjUSS"
+   },
+   "source": [
+    "#### **Intercepto**\n",
+    "\n",
+    "O **intercepto** representa o valor médio em $Y$ (Valor do imóvel) tendo todas as variáveis explicativas excluídas do modelo.\n",
+    "\n",
+    "No caso do modelo log-log, este coeficiente ($ln\\beta_0$) deve ser transformado com o uso da função exponencial (aplicando $e^{ln\\beta_0}$) para ser apresentado em reais."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "EflWCuH4J0nw"
+   },
+   "outputs": [],
+   "source": [
+    "# Lendo o valor do intercepto (coeficiente linear) em escala log\n",
+    "intercepto_log = modelo_sklearn.intercept_\n",
+    "print(f\"\\nIntercepto do modelo (escala log, ln(beta_0)): {intercepto_log:.4f}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "KM6oy-2Xnk0T"
+   },
+   "outputs": [],
+   "source": [
+    "# Transformando o efeito do intercepto para a escala original (reais)\n",
+    "intercepto_real = np.exp(intercepto_log)\n",
+    "print(f\"Intercepto do modelo (escala R$, beta_0): R$ {intercepto_real:,.2f}\".replace(',', 'v').replace('.', ',').replace('v', '.'))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "zVhjH-BzoKCl"
+   },
+   "source": [
+    "#### **Coeficientes de regressão**\n",
+    "\n",
+    "Os **coeficientes de regressão** $\\beta_1$,  $\\beta_2$, $\\beta_3$ e $\\beta_4$ são conhecidos como **coeficientes parciais de regressão**.\n",
+    "\n",
+    "Uma característica peculiar do modelo log-log, que o tornou muito utilizado em modelos de regressão linear, é que seus coeficientes angulares ($\\beta_1$, $\\beta_3$ e $\\beta_4$) medem as elasticidades de $Y$ em relação a $X_1$, $X_3$ e $X_4$, isto é, uma variação percentual de $Y$ corresponde a uma dada variação percentual (pequena) em $X_1$, $X_3$ e $X_4$.\n",
+    "\n",
+    "Como você pode notar, o $\\beta_2$ não entra nesse caso, pois o coeficiente de uma variável binária/dummy **não dita uma elasticidade**, pois você não pode alterar esse tipo de variável por uma certa porcentagem. Ela vai de 0 a 1 ou de 1 a 0."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "hbeoDBVApxI4"
+   },
+   "outputs": [],
+   "source": [
+    "# Lendo os coeficientes angulares (para cada variável) em escala log\n",
+    "coeficientes_log = modelo_sklearn.coef_\n",
+    "print(\"\\nCoeficientes angulares do modelo (escala log, betas):\")\n",
+    "print(coeficientes_log)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "hXQgJ1h7pzGh"
+   },
+   "source": [
+    "### **Construindo uma tabela (DataFrame) com os coeficientes e seus valores**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "6QsX9H_kpw93"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando pandas (já importado, mas bom garantir)\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "aeiIvGrBqJmV"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando o índice dos coeficientes (nomes das features na ordem correta)\n",
+    "indice_coef = X_train_novo.columns\n",
+    "print(\"\\nÍndice para o DataFrame de coeficientes:\")\n",
+    "print(indice_coef.tolist())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "LdwIsh1sqP7T"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando o DataFrame com os coeficientes (em escala log)\n",
+    "df_coeficientes = pd.DataFrame(data=coeficientes_log, index=indice_coef, columns=['Coeficientes (log)'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "e9oJU2QgqYCY"
+   },
+   "outputs": [],
+   "source": [
+    "# Exibindo o DataFrame de coeficientes\n",
+    "print(\"\\nDataFrame de Coeficientes (escala log):\")\n",
+    "print(df_coeficientes)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "uNQxRbaFLwv3"
+   },
+   "source": [
+    "## **5.2 Interpretando os coeficientes estimados**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "Vdj6fZgXKS8y"
+   },
+   "source": [
+    "#### **Nosso Modelo:**\n",
+    "\n",
+    "<img src=\"https://github.com/afonsosr2/data-science-regressao-linear/blob/main/imagens/modelo_log-log_3.png?raw=true\" alt=\"Nosso modelo construído\" width=720>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "x9o1dGjqMBj8"
+   },
+   "source": [
+    "**Intercepto →** Excluindo o efeito de todas as variáveis explicativas, o efeito médio no Valor do Imóvel seria de **R$ 71.294,33**. (exp[11.175])\n",
+    "\n",
+    "**Área do 1º andar (m²)** → Mantendo-se os valores de todas as outras variáveis explicativas constantes, um acréscimo de 1% na Área do 1º andar do imóvel gera, em média, um **acréscimo de 0.5%** no Valor do Imóvel.\n",
+    "\n",
+    "**Área do Quintal (m²)** → Mantendo-se os valores de todas as outras variáveis explicativas constantes, um acréscimo de 1% na Área do Quintal do imóvel gera, em média, um **acréscimo de 0.079%** no Valor do Imóvel.\n",
+    "\n",
+    "**Distância até o metrô (km)** → Mantendo-se os valores de todas as outras variáveis explicativas constantes, um acréscimo de 1% na Distância até o metrô gera, em média, um **decréscimo de 0.26%** no Valor do Imóvel.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "ERxktkMBLbgJ"
+   },
+   "source": [
+    "***E a variável `existe_segundo_andar`?***"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "9G7jFBcgMvMJ"
+   },
+   "source": [
+    "O impacto de uma variável **binária** ou ***dummy*** sobre o valor do imóvel é calculado de maneira diferente.\n",
+    "\n",
+    "Se o valor **varia de 0 para 1** em $X_2$, o impacto, em porcentagem, é calculado da seguinte forma:\n",
+    "\n",
+    "$$100 * (e^{\\beta_2} - 1)$$\n",
+    "\n",
+    "E se o **valor varia de 1 para 0**:\n",
+    "$$100 * (e^{-\\beta_2} - 1)$$\n",
+    "\n",
+    "Onde, $\\beta_2$ é o valor do coeficiente de `existe_segundo_andar`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "y8Zm2fPnLYhK"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando o efeito percentual da variável dummy 'existe_segundo_andar'\n",
+    "# Encontrando o coeficiente correspondente à dummy\n",
+    "try:\n",
+    "    # Pega o coeficiente pela posição no array (índice 1, pois é a segunda coluna em X_train_novo)\n",
+    "    beta_dummy = coeficientes_log[1] # Coeficiente de 'existe_segundo_andar'\n",
+    "\n",
+    "    # Calculando o impacto percentual quando a dummy muda de 0 para 1\n",
+    "    efeito_dummy_perc_aumento = 100 * (np.exp(beta_dummy) - 1)\n",
+    "    print(f\"\\nTer um segundo andar (mudar de 0 para 1) aumenta o valor do imóvel em, aproximadamente: {efeito_dummy_perc_aumento:.2f}%\")\n",
+    "\n",
+    "    # Calculando o impacto percentual quando a dummy muda de 1 para 0\n",
+    "    efeito_dummy_perc_diminuicao = 100 * (np.exp(-beta_dummy) - 1) # Note o sinal negativo no expoente\n",
+    "    print(f\"Não ter um segundo andar (mudar de 1 para 0) diminui o valor do imóvel em, aproximadamente: {efeito_dummy_perc_diminuicao:.2f}%\")\n",
+    "\n",
+    "except IndexError:\n",
+    "    print(\"\\nErro: Não foi possível encontrar o coeficiente da variável dummy no índice esperado. Verifique a ordem das colunas.\")\n",
+    "except Exception as e:\n",
+    "     print(f\"\\nOcorreu um erro ao calcular o efeito da dummy: {e}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "KFkL3cQv-7Xh"
+   },
+   "source": [
+    "## **5.3 - Analisando graficamente os resultados do modelo**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "yjY3GpqzcI5I"
+   },
+   "source": [
+    "Vamos agora analisar graficamente os resultados de nosso modelo, gerando previsões de casas para os dados de treino."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "xYavLzjmjyVb"
+   },
+   "source": [
+    "### **Analisando pelos dados de TREINO**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "h8sr2FGdjpmp"
+   },
+   "source": [
+    "#### **Gerando previsões para os dados de treino**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "skguORaisEIA"
+   },
+   "outputs": [],
+   "source": [
+    "# Gerando previsões do modelo para os dados de TREINO (usando X_train_novo)\n",
+    "y_pred_treino = modelo_sklearn.predict(X_train_novo)\n",
+    "print(f\"\\nPrevisões geradas para as {len(y_pred_treino)} amostras de treino.\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "pkJrgS0jdz9N"
+   },
+   "source": [
+    "#### **Gráfico de dispersão entre o valor estimado e real**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "wBE13QkedsaR"
+   },
+   "outputs": [],
+   "source": [
+    "# Criando gráfico de dispersão: Previsão (Treino) vs Real (Treino)\n",
+    "plt.figure(figsize=(10, 6)) # Ajustado tamanho da figura\n",
+    "ax = sns.scatterplot(x=y_pred_treino, y=y_train, alpha=0.6) # Adicionado alpha para transparência\n",
+    "\n",
+    "# Adicionando linha de referência y=x (onde previsão = real)\n",
+    "max_val = max(y_pred_treino.max(), y_train.max())\n",
+    "min_val = min(y_pred_treino.min(), y_train.min())\n",
+    "ax.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', linewidth=2, label='Ideal (Previsão = Real)')\n",
+    "\n",
+    "ax.set_title('Previsão X Real (Dados de Treino)', fontsize=18)\n",
+    "ax.set_xlabel('log do Preço - Previsão', fontsize=14)\n",
+    "ax.set_ylabel('log do Preço - Real', fontsize=14)\n",
+    "ax.legend()\n",
+    "plt.grid(True) # Adiciona grade\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "wRNiYmIFkL48"
+   },
+   "source": [
+    "#### **Obtendo os resíduos e observando seu comportamento**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "mGRmnYY-dsXc"
+   },
+   "outputs": [],
+   "source": [
+    "# Calculando os resíduos (diferença entre real e previsto nos dados de treino)\n",
+    "residuos_treino = y_train - y_pred_treino\n",
+    "print(f\"\\nResíduos calculados para dados de treino. Média dos resíduos: {residuos_treino.mean():.4f}\") # Deve ser muito próximo de 0"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "0qaXT2FvdsU0"
+   },
+   "outputs": [],
+   "source": [
+    "# Plotando a distribuição de frequência dos resíduos (Treino)\n",
+    "plt.figure(figsize=(10, 6)) # Ajustado tamanho da figura\n",
+    "ax = sns.histplot(residuos_treino, kde=True, bins=30) # Ajustado número de bins\n",
+    "ax.set_title('Distribuição de Frequências dos Resíduos (Treino)', fontsize=18)\n",
+    "ax.set_xlabel('Resíduos (log do Preço)', fontsize=14)\n",
+    "ax.set_ylabel('Frequência', fontsize=12)\n",
+    "plt.axvline(residuos_treino.mean(), color='r', linestyle='--', label=f'Média: {residuos_treino.mean():.3f}') # Linha da média\n",
+    "plt.legend()\n",
+    "plt.grid(True)\n",
+    "plt.show()\n",
+    "# Idealmente, os resíduos devem seguir uma distribuição normal centrada em 0."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "kZTP7V2ekYRe"
+   },
+   "source": [
+    "#### **Homocedasticidade do modelo**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "IjslWdJakXai"
+   },
+   "outputs": [],
+   "source": [
+    "# Plotando os resíduos versus os valores previstos (verificar homocedasticidade - Treino)\n",
+    "plt.figure(figsize=(10, 6)) # Ajustado tamanho da figura\n",
+    "ax = sns.scatterplot(x=y_pred_treino, y=residuos_treino, alpha=0.6)\n",
+    "\n",
+    "# Adicionando linha horizontal em y=0\n",
+    "ax.axhline(0, color='red', linestyle='--', linewidth=2, label='Resíduo Zero')\n",
+    "\n",
+    "ax.set_title('Resíduos vs Previsão (Homocedasticidade - Treino)', fontsize=18)\n",
+    "ax.set_xlabel('log do Preço - Previsão', fontsize=14)\n",
+    "ax.set_ylabel('Resíduos', fontsize=14)\n",
+    "ax.legend()\n",
+    "plt.grid(True)\n",
+    "plt.show()\n",
+    "# Idealmente, os pontos devem se espalhar aleatoriamente em torno da linha y=0,\n",
+    "# sem formar padrões claros (como um funil ou curva). Isso indica homocedasticidade."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "dSV-fvBn-7Xi"
+   },
+   "source": [
+    "## **5.4 - Salvando o modelo e prevendo mais casas**\n",
+    "\n",
+    "---\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "frcg2Zoqm_ys"
+   },
+   "source": [
+    "Para salvar o nosso modelo vamos utilizar a biblioteca [pickle](https://docs.python.org/3/library/pickle.html) que é serve para serializar e desserializar objetos, permitindo que você salve objetos Python em um arquivo e depois os recupere.\n",
+    "\n",
+    "Em outras palavras, ela converte objetos Python em uma representação binária (serialização) para armazenamento ou transmissão e depois reconstrói esses objetos a partir dessa representação (desserialização)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "Cu0bkdWEnl9d"
+   },
+   "outputs": [],
+   "source": [
+    "# Importando a biblioteca pickle para salvar o modelo\n",
+    "import pickle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "id": "FOuLGcNjnoeM"
+   },
+   "outputs": [],
+   "source": [
+    "# Salvando o modelo treinado ('modelo_sklearn') em um arquivo .pkl\n",
+    "output_filename = 'modelo_preco_casa.pkl'\n",
+    "try:\n",
+    "    with open(output_filename, 'wb') as file:\n",
+    "        pickle.dump(modelo_sklearn, file)\n",
+    "    print(f\"\\nModelo salvo com sucesso como '{output_filename}'\")\n",
+    "    # Created/Modified files during execution:\n",
+    "    print(f\"Created/Modified files during execution:\\n['{output_filename}']\")\n",
+    "except Exception as e:\n",
+    "    print(f\"\\nErro ao salvar o modelo: {e}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "id": "2zAtVPMuoEdt"
+   },
+   "source": [
+    "Vamos agora salvar o arquivo pickle e baixar os arquivos \"casas_a_precificar.csv\" e \"Precificando mais casas.ipynb\" que estão nas atividades desse curso."
+   ]
+  }
+ ],
+ "metadata": {
+  "colab": {
+   "authorship_tag": "ABX9TyONpANXNxHY79R2lAoeBGVF",
+   "provenance": []
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
