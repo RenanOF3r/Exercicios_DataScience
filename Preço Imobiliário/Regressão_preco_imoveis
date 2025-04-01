@@ -1,0 +1,60 @@
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Carregar os dados do arquivo CSV
+file_path = 'precos_casas.csv'
+df = pd.read_csv(file_path)
+
+# Definir as variáveis independentes (features) e a variável dependente (target)
+# Usando as mesmas features do modelo linear anterior
+features = ['area_primeiro_andar', 'existe_segundo_andar', 'area_quintal', 'dist_metro']
+target = 'valor'
+
+X = df[features]
+y = df[target]
+
+# Dividir os dados em conjuntos de treinamento e teste (80% treino, 20% teste)
+# Usar o mesmo random_state para garantir a mesma divisão
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Criar e treinar o modelo RandomForestRegressor
+# n_estimators: número de árvores na floresta
+# random_state: para reprodutibilidade
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1) # n_jobs=-1 usa todos os processadores
+rf_model.fit(X_train, y_train)
+
+# Fazer previsões no conjunto de teste
+y_pred_rf = rf_model.predict(X_test)
+
+# Avaliar o modelo RandomForest
+mse_rf = mean_squared_error(y_test, y_pred_rf)
+r2_rf = r2_score(y_test, y_pred_rf)
+
+# Exibir os resultados do modelo RandomForest
+print(f"Modelo RandomForestRegressor para Preços de Casas")
+print("-" * 50)
+print(f"Features Utilizadas: {', '.join(features)}")
+print("-" * 50)
+print(f"Avaliação do Modelo no Conjunto de Teste:")
+print(f"  - Erro Quadrático Médio (MSE): {mse_rf:.2f}")
+print(f"  - Coeficiente de Determinação (R²): {r2_rf:.4f}")
+print("-" * 50)
+print("Comparação com o modelo linear anterior (features reduzidas):")
+print(f"  - R² Linear:    0.6785") # Valor do R² do modelo anterior
+print(f"  - R² RandomForest: {r2_rf:.4f}")
+print("-" * 50)
+
+# (Opcional) Exibir a importância das features segundo o RandomForest
+print("Importância das Features (RandomForest):")
+importances = rf_model.feature_importances_
+feature_importance_df = pd.DataFrame({'Feature': features, 'Importance': importances})
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+for index, row in feature_importance_df.iterrows():
+    print(f"  - {row['Feature']}: {row['Importance']:.4f}")
+print("-" * 50)
+
+
+# Created/Modified files during execution:
+# Nenhum arquivo foi criado ou modificado.
