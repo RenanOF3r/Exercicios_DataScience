@@ -8,7 +8,7 @@ import numpy as np # Para calcular a raiz quadrada do MSE (RMSE)
 
 # Certifique-se de que o arquivo 'precos_casas.csv' está no mesmo diretório
 # ou forneça o caminho completo para ele.
-file_path = 'precos_casas.csv'
+file_path = 'Preço Imobiliário/precos_casas.csv'
 try:
     df = pd.read_csv(file_path)
     print(f"Dados carregados com sucesso de '{file_path}'.")
