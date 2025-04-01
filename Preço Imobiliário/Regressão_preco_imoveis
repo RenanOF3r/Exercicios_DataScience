@@ -1,60 +1,141 @@
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np # Para calcular a raiz quadrada do MSE (RMSE)
 
-# Carregar os dados do arquivo CSV
+### 1. Carregar os Dados
+
+# Certifique-se de que o arquivo 'precos_casas.csv' está no mesmo diretório
+# ou forneça o caminho completo para ele.
 file_path = 'precos_casas.csv'
-df = pd.read_csv(file_path)
+try:
+    df = pd.read_csv(file_path)
+    print(f"Dados carregados com sucesso de '{file_path}'.")
+    print(f"O DataFrame possui {df.shape[0]} linhas e {df.shape[1]} colunas.")
+    # print("\nPrimeiras linhas do DataFrame:")
+    # print(df.head()) # Descomente para ver as primeiras linhas
+except FileNotFoundError:
+    print(f"Erro Crítico: O arquivo '{file_path}' não foi encontrado.")
+    print("Por favor, verifique o nome e o local do arquivo.")
+    # Interrompe a execução se o arquivo não for encontrado
+    exit()
+except Exception as e:
+    print(f"Ocorreu um erro ao carregar o arquivo CSV: {e}")
+    exit()
 
-# Definir as variáveis independentes (features) e a variável dependente (target)
-# Usando as mesmas features do modelo linear anterior
+
+### 2. Definir Features (Variáveis Independentes) e Target (Variável Dependente)
+
+# Selecionamos as features que foram usadas no modelo final RandomForest,
+# excluindo 'dist_parque' que foi considerada menos influente anteriormente.
 features = ['area_primeiro_andar', 'existe_segundo_andar', 'area_quintal', 'dist_metro']
 target = 'valor'
+
+# Verificar se as colunas existem no DataFrame
+missing_cols = [col for col in features + [target] if col not in df.columns]
+if missing_cols:
+    print(f"\nErro Crítico: As seguintes colunas não foram encontradas no arquivo CSV: {missing_cols}")
+    print("Verifique os nomes das colunas no arquivo.")
+    exit()
 
 X = df[features]
 y = df[target]
 
-# Dividir os dados em conjuntos de treinamento e teste (80% treino, 20% teste)
-# Usar o mesmo random_state para garantir a mesma divisão
+print("\nFeatures selecionadas para o modelo:")
+print(features)
+print(f"Target (variável a ser prevista): {target}")
+
+
+### 3. Dividir os Dados em Conjuntos de Treino e Teste
+
+# Usamos test_size=0.2 para separar 20% dos dados para teste
+# random_state=42 garante que a divisão seja a mesma toda vez que o código rodar,
+# permitindo a reprodutibilidade dos resultados.
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Criar e treinar o modelo RandomForestRegressor
-# n_estimators: número de árvores na floresta
-# random_state: para reprodutibilidade
-rf_model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1) # n_jobs=-1 usa todos os processadores
+print(f"\nDados divididos em conjuntos de treino e teste:")
+print(f" - Tamanho do conjunto de treino (X_train): {X_train.shape[0]} amostras")
+print(f" - Tamanho do conjunto de teste (X_test): {X_test.shape[0]} amostras")
+
+
+### 4. Instanciar e Treinar o Modelo RandomForestRegressor
+
+# Instanciamos o RandomForestRegressor com 100 árvores (n_estimators=100)
+# e random_state=42 para consistência interna do modelo.
+# n_jobs=-1 utiliza todos os processadores disponíveis para acelerar o treinamento.
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1, oob_score=True) # oob_score=True para estimativa out-of-bag
+
+print("\nIniciando o treinamento do modelo RandomForestRegressor...")
+# Treinamos o modelo usando os dados de treino (X_train, y_train)
 rf_model.fit(X_train, y_train)
+print("Treinamento concluído.")
 
-# Fazer previsões no conjunto de teste
+
+### 5. Fazer Previsões com o Modelo Treinado
+
+# Usamos o modelo treinado para fazer previsões no conjunto de teste (X_test)
 y_pred_rf = rf_model.predict(X_test)
+print("\nPrevisões realizadas no conjunto de teste.")
 
-# Avaliar o modelo RandomForest
+
+### 6. Avaliar a Performance do Modelo
+
+# Calculamos métricas para avaliar quão bem o modelo generaliza para dados não vistos.
 mse_rf = mean_squared_error(y_test, y_pred_rf)
+# R² (Coeficiente de Determinação): Indica a proporção da variância no target
+# que é previsível a partir das features. Varia de -inf a 1 (melhor).
 r2_rf = r2_score(y_test, y_pred_rf)
+# RMSE (Raiz do Erro Quadrático Médio): É a raiz quadrada do MSE,
+# tendo a mesma unidade do target (valor da casa), o que facilita a interpretação.
+rmse_rf = np.sqrt(mse_rf)
+# OOB Score: Estimativa do R² calculada usando amostras out-of-bag durante o treinamento.
+# É uma boa estimativa de como o modelo performa em dados não vistos, sem precisar do conjunto de teste.
+oob_score_rf = rf_model.oob_score_
 
-# Exibir os resultados do modelo RandomForest
-print(f"Modelo RandomForestRegressor para Preços de Casas")
-print("-" * 50)
-print(f"Features Utilizadas: {', '.join(features)}")
-print("-" * 50)
-print(f"Avaliação do Modelo no Conjunto de Teste:")
-print(f"  - Erro Quadrático Médio (MSE): {mse_rf:.2f}")
-print(f"  - Coeficiente de Determinação (R²): {r2_rf:.4f}")
-print("-" * 50)
-print("Comparação com o modelo linear anterior (features reduzidas):")
-print(f"  - R² Linear:    0.6785") # Valor do R² do modelo anterior
-print(f"  - R² RandomForest: {r2_rf:.4f}")
-print("-" * 50)
+print("\n--- Avaliação do Modelo RandomForestRegressor no Conjunto de Teste ---")
+print(f"Mean Squared Error (MSE): {mse_rf:,.2f}")
+print(f"Root Mean Squared Error (RMSE): R$ {rmse_rf:,.2f}")
+print(f"R-squared (R²): {r2_rf:.4f} (Explica aproximadamente {r2_rf*100:.2f}% da variância no preço)")
+print(f"Out-of-Bag (OOB) Score (estimativa R²): {oob_score_rf:.4f}")
 
-# (Opcional) Exibir a importância das features segundo o RandomForest
-print("Importância das Features (RandomForest):")
+
+### 7. Exibir a Importância das Features
+
+# O RandomForest permite verificar quais features foram mais importantes para as previsões.
+print("\n--- Importância das Features (segundo o modelo RandomForest) ---")
 importances = rf_model.feature_importances_
+# Criamos um DataFrame para visualizar melhor a importância de cada feature
 feature_importance_df = pd.DataFrame({'Feature': features, 'Importance': importances})
+# Ordenamos as features da mais importante para a menos importante
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-for index, row in feature_importance_df.iterrows():
-    print(f"  - {row['Feature']}: {row['Importance']:.4f}")
-print("-" * 50)
+print(feature_importance_df)
 
+
+### 8. Exemplo: Prever o Preço da Casa da Imagem
+
+print("\n--- Exemplo de Previsão para a Casa da Imagem ---")
+# Dados da casa conforme a imagem fornecida
+dados_casa = {
+    'area_primeiro_andar': [150],
+    'existe_segundo_andar': [1], # 'Sim' é representado por 1
+    'area_quintal': [80],
+    'dist_metro': [2.0]
+}
+
+# Criamos um DataFrame com os dados da casa, garantindo a ordem correta das colunas
+casa_df = pd.DataFrame(dados_casa)[features]
+
+# Usamos o modelo treinado para prever o preço desta casa específica
+preco_estimado_casa = rf_model.predict(casa_df)
+
+print("Características da casa para previsão:")
+print(casa_df)
+# Formatamos o preço estimado para melhor visualização (formato de moeda brasileira)
+print(f"\nPreço Estimado pelo Modelo: R$ {preco_estimado_casa[0]:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'))
+print("-" * 60)
 
 # Created/Modified files during execution:
-# Nenhum arquivo foi criado ou modificado.
+# Nenhum arquivo foi criado ou modificado por este script.
+print("\n# Created/Modified files during execution:")
+print("# Nenhum arquivo foi criado ou modificado.")
