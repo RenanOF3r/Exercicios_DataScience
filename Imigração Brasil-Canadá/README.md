@@ -1,99 +1,109 @@
-# Imigração do Brasil para o Canadá (1980+)
+# Imigração do Brasil para o Canadá — Análises e Estrutura
 
-Análise exploratória da evolução da imigração do **Brasil → Canadá** usando um dataset anual por país (a partir de 1980).  
-Este repositório contém notebooks prontos para executar, gráficos exportados e um fluxo reproduzível.
+Este repositório reúne uma análise exploratória da imigração do **Brasil → Canadá** (1980+),
+com foco em **tendência**, **dinâmica anual**, **relevância relativa** e **estrutura do fluxo**.
 
-## 🎯 Objetivos
-- Entender **tendências** de longo prazo, **oscilações** de curto prazo e **relevância relativa** do Brasil.
-- Produzir gráficos claros (um por célula) e salvar as figuras em `exports/`.
-- Oferecer análises essenciais com **texto de contexto antes** e **resumo depois** de cada gráfico.
+## 🎯 Objetivo
+Responder, com visualizações claras e replicáveis, às perguntas:
+- Como a imigração do Brasil evoluiu ao longo do tempo?
+- Em que momentos houve aceleração ou queda?
+- Qual a **participação** do Brasil dentro do total?
+- Como o Brasil se posiciona **entre outros países**?
+- O fluxo total está **concentrado** em poucos países ou **diversificado**?
 
-## 📦 Conteúdo principal
-- **`imigracao_brasil_canada_unico.ipynb`** — *Notebook principal (recomendado)* com todos os gráficos e as 3 análises essenciais:
-  1. Série anual do Brasil + MM5
-  2. Variação ano a ano (Δ)
-  3. Participação do Brasil (%) no total
-  4. Acumulado desde 1980
-  5. Índice (base ≈ 100)
-  6. Comparação entre países (Brasil, Argentina, China, Índia)
-  7. Top 10 do último ano com **degradê amarelo → laranja**
-  8. **Ranking anual do Brasil** (1 = maior fluxo)
-  9. **CAGR móvel (5 anos)**
-  10. **Concentração (HHI)** vs. participação do Brasil
 
-- **`imigracao_brasil_canada_unico_renderizado.ipynb`** — Mesma versão **com outputs embutidos** (abre sem precisar reexecutar).
-- **Outros notebooks úteis (opcional):**
-  - `imigracao_brasil_canada_completo_gradiente(_renderizado).ipynb` — versão completa com o degradê já aplicado ao Top 10.
-  - `imigracao_brasil_canada_refeito_cores(_renderizado).ipynb` — versão com paleta de alto contraste.
-  - `imigracao_brasil_canada_3_analises(_renderizado).ipynb` — caderno focado nas 3 análises essenciais.
 
-> As figuras e arquivos gerados são salvos em `exports/` (por exemplo, `exports/01_brasil_imigrantes_por_ano.png`).
-
-## 🗂️ Dados
-- Espera-se um arquivo CSV chamado **`imigrantes_canada.csv`** na raiz do projeto (ou ajuste o caminho na primeira célula).
-- O notebook **detecta automaticamente** a coluna de país (ex.: `País`, `Country`, `ODNAME`) e as colunas de anos (1980…).
-- **Atenção à licença**: verifique se você pode **redistribuir** o CSV antes de publicar em repositório público.
-
-## 🛠️ Como reproduzir
-Recomendado usar Python 3.10+ e um ambiente virtual:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-# (Opcional) Se quiser variar estilos locais:
-# pip install seaborn
+## 📁 Estrutura do projeto
+```
+.
+├── imigracao_brasil_canada.ipynb                        # Notebook com gráficos embutidos
+├── exports/                                             # PNGs gerados
+│   ├── 01_brasil_imigrantes_por_ano.png
+│   ├── 02_brasil_yoy_abs.png
+│   ├── 03_brasil_participacao.png
+│   ├── 04_brasil_acumulado.png
+│   ├── 05_brasil_indice_base100.png
+│   ├── 06_comparacao_paises.png
+│   ├── 07_top10_YYYY_gradiente.png
+│   ├── 08_ranking_brasil.png
+│   ├── 09_cagr5_brasil.png
+│   └── 10_hhi_vs_share.png
+├── requirements.txt
+├── LICENSE
+└── README.md
 ```
 
-Execute o Jupyter e abra o notebook principal:
-```bash
-jupyter lab        # ou: jupyter notebook
-```
+> **Dados**: o notebook espera um arquivo `imigrantes_canada.csv` na raiz **apenas se você quiser reprocessar**.
+> Para **visualizar**, basta abrir o notebook no GitHub ou consultar os PNGs em `exports/`.
 
-Depois de rodar as células, os resultados serão salvos em `./exports/`:
-- PNGs de todos os gráficos (inclui o **Top 10 com degradê amarelo → laranja**)
-- CSV com a série do Brasil: `exports/brasil_imigracao_canada_serie.csv`
-- Resumos/insights quando disponíveis (ex.: `exports/resumo_brasil_canada.txt`)
+## 👀 Como visualizar
+- Abra `imigracao_brasil_canada.ipynb` diretamente no GitHub para ver os gráficos embutidos; **ou**
+- navegue pela pasta `exports/` para ver as figuras em PNG.
 
-## 🔍 O que cada análise responde
-- **Série + MM5**: tendência estrutural e pontos de inflexão.
-- **Δ ano a ano**: acelerações/recuos de curto prazo.
-- **Participação (%)**: ganho de relevância do Brasil vs. mercado total.
-- **Acumulado**: contribuição total ao longo das décadas.
-- **Índice base ≈ 100**: crescimento relativo independente do nível inicial.
-- **Comparação entre países**: posição do Brasil vs. Argentina/China/Índia.
-- **Top 10 (último ano)**: liderança por volume e distância entre países (com degradê amarelo→laranja).
-- **Ranking anual do Brasil**: competitividade relativa (1 = maior fluxo).
-- **CAGR 5Y**: períodos sustentados de expansão/contração.
-- **HHI vs. participação**: estrutura do “mercado” (concentração) versus ganho relativo do Brasil.
+## 🧪 Organização do notebook (o que cada seção faz e por que importa)
 
-## 🚀 Publicar no GitHub (rápido)
-**Via site (mais simples):**
-1. Crie um repositório em https://github.com/new (ex.: `imigracao-brasil-canada`).
-2. Clique em **Add file → Upload files** e suba: notebooks, `requirements.txt`, `.gitignore`, `exports/` e **(opcional)** `imigrantes_canada.csv`.
-3. Faça o *commit*.
+1) **Série anual do Brasil + MM5**  
+   - **O que é**: linha com os imigrantes/ano e uma **média móvel de 5 anos**.  
+   - **Por que importa**: revela **tendência estrutural** e **pontos de inflexão**.  
+   - **Saída**: `exports/01_brasil_imigrantes_por_ano.png`.
 
-**Via linha de comando:**
-```bash
-git init
-git add .
-git commit -m "Análise: imigração Brasil → Canadá (1980+)"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/imigracao-brasil-canada.git
-git push -u origin main
-```
+2) **Variação ano a ano (Δ)**  
+   - **O que é**: diferença absoluta entre anos consecutivos.  
+   - **Por que importa**: destaca **acelerações** e **quedas** de curto prazo.  
+   - **Saída**: `exports/02_brasil_yoy_abs.png`.
 
-> Dica: para HTTPS, use um **PAT (Personal Access Token)**. Para SSH, cadastre sua chave pública no GitHub.
+3) **Participação do Brasil (%) no total**  
+   - **O que é**: share do Brasil no total de imigrantes para o Canadá.  
+   - **Por que importa**: separa **crescimento próprio** de **crescimento do mercado**.  
+   - **Saída**: `exports/03_brasil_participacao.png`.
+
+4) **Acumulado desde 1980**  
+   - **O que é**: soma do fluxo ao longo do período.  
+   - **Por que importa**: mostra a **contribuição total** do Brasil nas décadas.  
+   - **Saída**: `exports/04_brasil_acumulado.png`.
+
+5) **Índice (base ≈ 100 no primeiro valor)**  
+   - **O que é**: normaliza a série para evidenciar **crescimento relativo**.  
+   - **Por que importa**: remove o efeito do nível inicial; facilita comparação proporcional.  
+   - **Saída**: `exports/05_brasil_indice_base100.png`.
+
+6) **Comparação entre países (Brasil × Argentina × China × Índia)**  
+   - **O que é**: séries dos países selecionados.  
+   - **Por que importa**: traz **escala** e **dinâmica relativa** no contexto internacional.  
+   - **Saída**: `exports/06_comparacao_paises.png`.
+
+7) **Top 10 do ano mais recente (degradê amarelo → laranja)**  
+   - **O que é**: ranking anual com coloração contínua do **menor** (amarelo) ao **maior** (laranja).  
+   - **Por que importa**: evidencia **liderança** e **distâncias** no último ano da série.  
+   - **Saída**: `exports/07_top10_YYYY_gradiente.png`.
+
+8) **Ranking anual do Brasil (1 = maior fluxo)**  
+   - **O que é**: posição do Brasil entre todos os países a cada ano (eixo invertido: 1 no topo).  
+   - **Por que importa**: mede **competitividade relativa** e mudanças de patamar.  
+   - **Saída**: `exports/08_ranking_brasil.png`.
+
+9) **Crescimento composto móvel (CAGR 5 anos)**  
+   - **O que é**: taxa composta de crescimento em janelas deslizantes de 5 anos.  
+   - **Por que importa**: identifica **períodos sustentados** de expansão/contração.  
+   - **Saída**: `exports/09_cagr5_brasil.png`.  
+   - **Fórmula**: \( \text{CAGR}_{5Y}(t) = \left(\frac{X_t}{X_{t-5}}\right)^{1/5} - 1 \).
+
+10) **Concentração (HHI) do total × Participação do Brasil**  
+    - **O que é**: **HHI** (soma dos quadrados das participações por país, ano a ano) e a participação do Brasil na mesma escala.  
+    - **Por que importa**: avalia se ganhos do Brasil ocorrem num **mercado concentrado** ou **disperso**.  
+    - **Saída**: `exports/10_hhi_vs_share.png`.  
+    - **Fórmula**: \( \text{HHI} = \sum_i s_i^2 \), onde \( s_i \) é o share do país *i* no ano.
+
+## 🧠 Metodologia e cuidados
+- Leitura robusta do CSV (encodings comuns).
+- Detecção automática de coluna de país e colunas de anos.
+- Exclusão de linhas agregadas (ex.: **Total/World**) em ranking e HHI.
+- Uso de **MM5**, **CAGR 5Y** e **índice base** para leitura de tendência e crescimento relativo.
+- Paleta consistente para melhorar contraste e leitura.
 
 ## 📄 Licença
-- Recomendo incluir uma licença como **MIT** para o código.
-- Verifique a licença dos **dados** antes de tornar o repositório público.
-
-## 🙌 Créditos
-- Notebooks e scripts criados automaticamente com Python (**Matplotlib**).  
-- Paletas ajustadas para melhor contraste e um gráfico com **degradê amarelo→laranja**.
-
-
+Código sob **MIT** (veja `LICENSE`).  
+Verifique a **licença dos dados** antes de publicar o CSV em repositório público.
 
 
 ## 🖼️ Pré-visualização rápida
