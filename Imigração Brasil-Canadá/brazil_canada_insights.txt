@@ -1,0 +1,13 @@
+Coluna de país detectada: País
+Anos detectados: 1980–2013 (34 anos)
+Ano com maior volume: 2010 (2598 imigrantes)
+Ano com menor volume: 1985 (130 imigrantes)
+Crescimento anual composto (CAGR) de 1980 a 2013: 6.55%
+Maior alta anual: +565 em 2007
+Maior queda anual: -1090 em 2011
+Top 5 anos por volume:
+  - 2010: 2598
+  - 2009: 2509
+  - 2008: 2138
+  - 2007: 1746
+  - 2013: 1714
